@@ -7,7 +7,8 @@ import android.widget.Toast;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 
 /**
- * Created by goonerdroid on 21/11/17.
+ * Created by goonerdroid
+ * on 21/11/17.
  */
 
 public abstract class BaseActivity extends FragmentActivity {
@@ -25,7 +26,6 @@ public abstract class BaseActivity extends FragmentActivity {
                         Toast.makeText(BaseActivity.this,
                                 "We,need this permission to fetch location updates", Toast.LENGTH_SHORT).show();
                     }
-
                 });
     }
 
