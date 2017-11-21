@@ -27,8 +27,16 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:26.1.0'
     implementation 'com.google.android.gms:play-services-maps:11.6.0'
+    implementation 'com.google.android.gms:play-services-location:11.6.0'
+    implementation 'com.google.android.gms:play-services-places:11.6.0'
+
+
+    //Reactive location and permissions.
     implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
     implementation 'com.tbruyelle.rxpermissions2:rxpermissions:0.9.1@aar'
+    implementation 'pl.charmas.android:android-reactive-location2:2.0@aar'
+
+    //Timber logger
     implementation 'org.jetbrains:annotations:15.0'
 
     testImplementation 'junit:junit:4.12'

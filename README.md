@@ -1,5 +1,5 @@
 # Loclm
-
+Rings alarm when device is near to the location specified by the user.
 
 ## License
 
