@@ -8,7 +8,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.sublime.loclm.Utils.Timber;
+import com.sublime.loclm.utils.Timber;
 
 public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
@@ -36,6 +36,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
     @Override
     protected void onLocationPermissionGranted() {
-        Timber.wtf();
+        Timber.wtf("tester");
     }
 }

@@ -2,7 +2,7 @@ package com.sublime.loclm;
 
 import android.app.Application;
 
-import com.sublime.loclm.Utils.Timber;
+import com.sublime.loclm.utils.Timber;
 
 /**
  * Created by goonerdroid

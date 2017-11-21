@@ -1,4 +1,4 @@
-package com.sublime.loclm.Utils;
+package com.sublime.loclm.utils;
 
 import android.os.Build;
 import android.support.annotation.Nullable;
@@ -397,7 +397,7 @@ public final class Timber {
   }
 
   /** A facade for handling logging calls. Install instances via {@link #plant Timber.plant()}. */
-  public static abstract class Tree {
+  public abstract static class Tree {
     final ThreadLocal<String> explicitTag = new ThreadLocal<>();
 
     @Nullable
