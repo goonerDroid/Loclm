@@ -15,12 +15,14 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.sublime.loclm.utils.Timber;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
@@ -44,10 +46,13 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
             UPDATE_INTERVAL_IN_MILLISECONDS / 2;
 
     private GoogleMap mMap;
+    private Observable<Location> lastKnownLocationObservable;
     private Observable<Location> locationUpdatesObservable;
+    private Observable<String> addressObservable;
+    private Disposable lastKnownLocationDisposable;
     private Disposable updatableLocationDisposable;
     private Disposable addressDisposable;
-    private Observable<String> addressObservable;
+    private Location location;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,37 +66,19 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         }
         mapView.onCreate(mapViewBundle);
         ReactiveLocationProvider locationProvider = new ReactiveLocationProvider(getApplicationContext());
-        initLocationUpdates(locationProvider);
+        initLocation(locationProvider);
 
     }
 
 
     @SuppressLint("MissingPermission")
-    private void initLocationUpdates(ReactiveLocationProvider locationProvider) {
+    private void initLocation(ReactiveLocationProvider locationProvider) {
         final LocationRequest locationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
                 .setNumUpdates((int) FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS)
                 .setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
-        locationUpdatesObservable = locationProvider
-                .checkLocationSettings(
-                        new LocationSettingsRequest.Builder()
-                                .addLocationRequest(locationRequest)
-                                .setAlwaysShow(true)
-                                .build()
-                )
-                .doOnNext(locationSettingsResult -> {
-                    Status status = locationSettingsResult.getStatus();
-                    if (status.getStatusCode() == LocationSettingsStatusCodes.RESOLUTION_REQUIRED) {
-                        try {
-                            status.startResolutionForResult(MainActivity.this, REQUEST_CHECK_SETTINGS);
-                        } catch (IntentSender.SendIntentException th) {
-                            Timber.e("Error opening settings activity.");
-                        }
-                    }
-                })
-                .flatMap(locationSettingsResult -> locationProvider.getUpdatedLocation(locationRequest))
-                .observeOn(AndroidSchedulers.mainThread());
-
+        getCurrentLocation(locationProvider);
+        getLocationUpdates(locationProvider,locationRequest);
         getCurrentAddress(locationProvider,locationRequest);
     }
 
@@ -113,6 +100,35 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 .observeOn(AndroidSchedulers.mainThread());
     }
 
+    @SuppressLint("MissingPermission")
+    private void getCurrentLocation(ReactiveLocationProvider locationProvider){
+        lastKnownLocationObservable = locationProvider
+                .getLastKnownLocation()
+                .observeOn(AndroidSchedulers.mainThread());
+    }
+
+    @SuppressLint("MissingPermission")
+    private void getLocationUpdates(ReactiveLocationProvider locationProvider, LocationRequest locationRequest){
+        locationUpdatesObservable = locationProvider
+                .checkLocationSettings(
+                        new LocationSettingsRequest.Builder()
+                                .addLocationRequest(locationRequest)
+                                .setAlwaysShow(true)
+                                .build()
+                )
+                .doOnNext(locationSettingsResult -> {
+                    Status status = locationSettingsResult.getStatus();
+                    if (status.getStatusCode() == LocationSettingsStatusCodes.RESOLUTION_REQUIRED) {
+                        try {
+                            status.startResolutionForResult(MainActivity.this, REQUEST_CHECK_SETTINGS);
+                        } catch (IntentSender.SendIntentException th) {
+                            Timber.e("Error opening settings activity.");
+                        }
+                    }
+                })
+                .flatMap(locationSettingsResult -> locationProvider.getUpdatedLocation(locationRequest))
+                .observeOn(AndroidSchedulers.mainThread());
+    }
 
 
     @Override
@@ -160,29 +176,49 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         mMap.setMyLocationEnabled(true);
+        UiSettings uiSettings = mMap.getUiSettings();
+        uiSettings.setZoomGesturesEnabled(true);
+        uiSettings.setTiltGesturesEnabled(false);
+        uiSettings.setRotateGesturesEnabled(false);
+        moveCurrentLocCamera(location);
+    }
+
+    @OnClick(R.id.iv_location)
+    public void onMyLocationClick(){
+        moveCurrentLocCamera(location);
     }
 
     @Override
     protected void onLocationPermissionGranted() {
         mapView.getMapAsync(this);
+
+
+        lastKnownLocationDisposable = lastKnownLocationObservable
+                .subscribe(this::moveCurrentLocCamera);
+
+
         updatableLocationDisposable = locationUpdatesObservable
-                .subscribe(location -> {
-                    LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                    CameraPosition cameraPosition = new CameraPosition.Builder()
-                            .target(latLng)
-                            .zoom(15)
-                            .build();
-                    mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-                });
+                .subscribe(location -> this.location = location);
 
         addressDisposable = addressObservable
                 .subscribe(addressStr -> tvAddress.setText(addressStr));
     }
 
+    private void moveCurrentLocCamera(Location location){
+        if (location != null) {
+            LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+            CameraPosition cameraPosition = new CameraPosition.Builder()
+                    .target(latLng)
+                    .zoom(15)
+                    .build();
+            mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        }
+    }
 
     @Override
     protected void onStop() {
         super.onStop();
+        lastKnownLocationDisposable.dispose();
         updatableLocationDisposable.dispose();
         addressDisposable.dispose();
         mapView.onStop();
