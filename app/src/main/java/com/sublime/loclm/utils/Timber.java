@@ -1,11 +1,11 @@
 package com.sublime.loclm.utils;
 
 import android.os.Build;
-import android.support.annotation.Nullable;
 import android.util.Log;
 
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -96,8 +96,8 @@ public final class Timber {
   }
 
   /** Log an assert message with optional format args. */
-  public static void wtf(Object... args) {
-    TREE_OF_SOULS.wtf("onLocationPermissionGranted called", args);
+  public static void wtf(@NonNls String message, Object... args) {
+    TREE_OF_SOULS.wtf(message, args);
   }
 
   /** Log an assert exception and a message with optional format args. */
@@ -397,7 +397,7 @@ public final class Timber {
   }
 
   /** A facade for handling logging calls. Install instances via {@link #plant Timber.plant()}. */
-  public abstract static class Tree {
+  public static abstract class Tree {
     final ThreadLocal<String> explicitTag = new ThreadLocal<>();
 
     @Nullable
@@ -582,7 +582,7 @@ public final class Timber {
      * @param t Accompanying exceptions. May be {@code null}, but then {@code message} will not be.
      */
     protected abstract void log(int priority, @Nullable String tag, @NotNull String message,
-        @Nullable Throwable t);
+                                @Nullable Throwable t);
   }
 
   /** A {@link Tree Tree} for debug builds. Automatically infers the tag from the calling class. */
@@ -625,7 +625,7 @@ public final class Timber {
       StackTraceElement[] stackTrace = new Throwable().getStackTrace();
       if (stackTrace.length <= CALL_STACK_INDEX) {
         throw new IllegalStateException(
-            "Synthetic stacktrace didn't have enough elements: are you using proguard?");
+                "Synthetic stacktrace didn't have enough elements: are you using proguard?");
       }
       return createStackElementTag(stackTrace[CALL_STACK_INDEX]);
     }

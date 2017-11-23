@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.location.Location;
 import android.os.Bundle;
+import android.widget.TextView;
 
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationRequest;
@@ -23,6 +24,7 @@ import butterknife.ButterKnife;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import pl.charmas.android.reactivelocation2.ReactiveLocationProvider;
 
 
@@ -31,14 +33,21 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
     @BindView(R.id.map)
     MapView mapView;
+    @BindView(R.id.tv_address)
+    TextView tvAddress;
 
 
     private static final int REQUEST_CHECK_SETTINGS = 0;
     private static final String MAPVIEW_BUNDLE_KEY = "MapViewBundleKey";
+    private static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
+    private static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS =
+            UPDATE_INTERVAL_IN_MILLISECONDS / 2;
 
     private GoogleMap mMap;
     private Observable<Location> locationUpdatesObservable;
     private Disposable updatableLocationDisposable;
+    private Disposable addressDisposable;
+    private Observable<String> addressObservable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,18 +60,18 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
             mapViewBundle = savedInstanceState.getBundle(MAPVIEW_BUNDLE_KEY);
         }
         mapView.onCreate(mapViewBundle);
+        ReactiveLocationProvider locationProvider = new ReactiveLocationProvider(getApplicationContext());
+        initLocationUpdates(locationProvider);
 
-        initLocationUpdates();
     }
 
 
     @SuppressLint("MissingPermission")
-    private void initLocationUpdates() {
-        ReactiveLocationProvider locationProvider = new ReactiveLocationProvider(getApplicationContext());
+    private void initLocationUpdates(ReactiveLocationProvider locationProvider) {
         final LocationRequest locationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
-                .setNumUpdates(5)
-                .setInterval(100);
+                .setNumUpdates((int) FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS)
+                .setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
         locationUpdatesObservable = locationProvider
                 .checkLocationSettings(
                         new LocationSettingsRequest.Builder()
@@ -82,19 +91,38 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 })
                 .flatMap(locationSettingsResult -> locationProvider.getUpdatedLocation(locationRequest))
                 .observeOn(AndroidSchedulers.mainThread());
+
+        getCurrentAddress(locationProvider,locationRequest);
     }
+
+    @SuppressLint("MissingPermission")
+    private void getCurrentAddress(ReactiveLocationProvider locationProvider, LocationRequest locationRequest){
+        addressObservable = locationProvider.getUpdatedLocation(locationRequest)
+                .flatMap(location -> locationProvider.getReverseGeocodeObservable(location.getLatitude(), location.getLongitude(), 1))
+                .map(addresses -> addresses != null && !addresses.isEmpty() ? addresses.get(0) : null)
+                .map(address -> {
+                    if (address == null) return "";
+
+                    StringBuilder addressLines = new StringBuilder();
+                    for (int i = 0; i <= address.getMaxAddressLineIndex(); i++) {
+                        addressLines.append(address.getAddressLine(i)).append('\n');
+                    }
+                    return addressLines.toString();
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
+    }
+
 
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-
         Bundle mapViewBundle = outState.getBundle(MAPVIEW_BUNDLE_KEY);
         if (mapViewBundle == null) {
             mapViewBundle = new Bundle();
             outState.putBundle(MAPVIEW_BUNDLE_KEY, mapViewBundle);
         }
-
         mapView.onSaveInstanceState(mapViewBundle);
     }
 
@@ -146,6 +174,9 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                             .build();
                     mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
                 });
+
+        addressDisposable = addressObservable
+                .subscribe(addressStr -> tvAddress.setText(addressStr));
     }
 
 
@@ -153,6 +184,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     protected void onStop() {
         super.onStop();
         updatableLocationDisposable.dispose();
+        addressDisposable.dispose();
         mapView.onStop();
     }
 
