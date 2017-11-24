@@ -1,7 +1,8 @@
 package com.sublime.loclm;
 
 import android.Manifest;
-import android.support.v4.app.FragmentActivity;
+import android.content.pm.ActivityInfo;
+import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
 import com.tbruyelle.rxpermissions2.RxPermissions;
@@ -11,12 +12,12 @@ import com.tbruyelle.rxpermissions2.RxPermissions;
  * on 21/11/17.
  */
 
-public abstract class BaseActivity extends FragmentActivity {
+public abstract class BaseActivity extends AppCompatActivity {
 
 
     @Override public void onStart() {
         super.onStart();
-
+        setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         new RxPermissions(this)
                 .request(Manifest.permission.ACCESS_FINE_LOCATION)
                 .subscribe(granted -> {

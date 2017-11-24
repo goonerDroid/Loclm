@@ -2,4 +2,6 @@
     <string name="app_name">Loclm</string>
     <string name="title_activity_main">Loclm</string>
     <string name="hint_destination">Enter your destination to ring alarm</string>
+    <string name="title_activity_places">PlacesActivity</string>
+    <string name="et_destination">activity_dest_transition</string>
 </resources>

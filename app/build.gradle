@@ -31,7 +31,6 @@ dependencies {
     implementation 'com.google.android.gms:play-services-places:11.6.0'
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
 
-
     //Reactive location and permissions.
     implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
     implementation 'com.tbruyelle.rxpermissions2:rxpermissions:0.9.1@aar'
@@ -42,6 +41,7 @@ dependencies {
 
     //Butterknife
     implementation 'com.jakewharton:butterknife:8.8.1'
+    implementation 'com.android.support:design:26.1.0'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
 
     testImplementation 'junit:junit:4.12'

@@ -4,7 +4,12 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.util.Pair;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import com.google.android.gms.common.api.Status;
@@ -37,13 +42,15 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     MapView mapView;
     @BindView(R.id.tv_address)
     TextView tvAddress;
-
+    @BindView(R.id.et_dest)
+    EditText etDest;
 
     private static final int REQUEST_CHECK_SETTINGS = 0;
     private static final String MAPVIEW_BUNDLE_KEY = "MapViewBundleKey";
     private static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
     private static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS =
             UPDATE_INTERVAL_IN_MILLISECONDS / 2;
+
 
     private GoogleMap mMap;
     private Observable<Location> lastKnownLocationObservable;
@@ -78,12 +85,12 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 .setNumUpdates((int) FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS)
                 .setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
         getCurrentLocation(locationProvider);
-        getLocationUpdates(locationProvider,locationRequest);
-        getCurrentAddress(locationProvider,locationRequest);
+        getLocationUpdates(locationProvider, locationRequest);
+        getCurrentAddress(locationProvider, locationRequest);
     }
 
     @SuppressLint("MissingPermission")
-    private void getCurrentAddress(ReactiveLocationProvider locationProvider, LocationRequest locationRequest){
+    private void getCurrentAddress(ReactiveLocationProvider locationProvider, LocationRequest locationRequest) {
         addressObservable = locationProvider.getUpdatedLocation(locationRequest)
                 .flatMap(location -> locationProvider.getReverseGeocodeObservable(location.getLatitude(), location.getLongitude(), 1))
                 .map(addresses -> addresses != null && !addresses.isEmpty() ? addresses.get(0) : null)
@@ -101,14 +108,14 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     }
 
     @SuppressLint("MissingPermission")
-    private void getCurrentLocation(ReactiveLocationProvider locationProvider){
+    private void getCurrentLocation(ReactiveLocationProvider locationProvider) {
         lastKnownLocationObservable = locationProvider
                 .getLastKnownLocation()
                 .observeOn(AndroidSchedulers.mainThread());
     }
 
     @SuppressLint("MissingPermission")
-    private void getLocationUpdates(ReactiveLocationProvider locationProvider, LocationRequest locationRequest){
+    private void getLocationUpdates(ReactiveLocationProvider locationProvider, LocationRequest locationRequest) {
         locationUpdatesObservable = locationProvider
                 .checkLocationSettings(
                         new LocationSettingsRequest.Builder()
@@ -184,8 +191,26 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     }
 
     @OnClick(R.id.iv_location)
-    public void onMyLocationClick(){
+    public void onMyLocationClick() {
         moveCurrentLocCamera(location);
+    }
+
+
+    @SuppressWarnings("unchecked")
+    @OnClick(R.id.et_dest)
+    public void onDestinationViewClick() {
+        Intent intent = new Intent(this, PlacesActivity.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            etDest.setTransitionName(getString(R.string.et_destination));
+
+            Pair<View, String> pair1 = Pair.create(etDest, etDest.getTransitionName());
+            ActivityOptionsCompat options = ActivityOptionsCompat.
+                    makeSceneTransitionAnimation(this, pair1);
+            startActivity(intent, options.toBundle());
+            return;
+        }
+
+        startActivity(intent);
     }
 
     @Override
@@ -204,7 +229,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 .subscribe(addressStr -> tvAddress.setText(addressStr));
     }
 
-    private void moveCurrentLocCamera(Location location){
+    private void moveCurrentLocCamera(Location location) {
         if (location != null) {
             LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
             CameraPosition cameraPosition = new CameraPosition.Builder()
@@ -218,9 +243,9 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     @Override
     protected void onStop() {
         super.onStop();
-        if (lastKnownLocationDisposable != null)lastKnownLocationDisposable.dispose();
-        if (updatableLocationDisposable !=null)updatableLocationDisposable.dispose();
-        if (addressDisposable != null)addressDisposable.dispose();
+        if (lastKnownLocationDisposable != null) lastKnownLocationDisposable.dispose();
+        if (updatableLocationDisposable != null) updatableLocationDisposable.dispose();
+        if (addressDisposable != null) addressDisposable.dispose();
         mapView.onStop();
     }
 
