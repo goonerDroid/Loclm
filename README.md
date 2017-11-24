@@ -1,4 +1,4 @@
-# Loclm  [![Twitter Follow](https://img.shields.io/twitter/follow/goonahDroid.svg?style=social&label=Follow)](https://twitter.com/goonahDroid)
+# Loclm  [![Twitter Follow](https://img.shields.io/twitter/follow/goonahDroid.svg?style=social&label=Follow)](https://twitter.com/goonahDroid)  [![GitHub followers](https://img.shields.io/github/followers/goonerDroid.svg?style=social&label=Follow)](https://github.com/goonerDroid/Loclm)
 Alerts the user when location is nearby.
 
 ## License
