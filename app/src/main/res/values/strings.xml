@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Loclm</string>
     <string name="title_activity_main">Loclm</string>
+    <string name="hint_destination">Enter your destination to ring alarm</string>
 </resources>
