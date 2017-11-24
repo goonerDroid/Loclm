@@ -218,9 +218,9 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     @Override
     protected void onStop() {
         super.onStop();
-        lastKnownLocationDisposable.dispose();
-        updatableLocationDisposable.dispose();
-        addressDisposable.dispose();
+        if (lastKnownLocationDisposable != null)lastKnownLocationDisposable.dispose();
+        if (updatableLocationDisposable !=null)updatableLocationDisposable.dispose();
+        if (addressDisposable != null)addressDisposable.dispose();
         mapView.onStop();
     }
 
