@@ -1,4 +1,4 @@
-package com.sublime.loclm;
+package com.sublime.loclm.activities;
 
 import android.annotation.SuppressLint;
 import android.location.Location;
@@ -12,6 +12,8 @@ import com.google.android.gms.location.places.AutocompletePrediction;
 import com.google.android.gms.location.places.AutocompletePredictionBuffer;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.sublime.loclm.R;
+import com.sublime.loclm.app.BaseActivity;
 import com.sublime.loclm.utils.RxTextView;
 
 import java.util.ArrayList;

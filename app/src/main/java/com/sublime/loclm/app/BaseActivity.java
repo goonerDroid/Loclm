@@ -1,4 +1,4 @@
-package com.sublime.loclm;
+package com.sublime.loclm.app;
 
 import android.Manifest;
 import android.content.pm.ActivityInfo;
@@ -17,7 +17,10 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     @Override public void onStart() {
         super.onStart();
+        //sets portrait mode for entire application.
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
+        //requests permission for accessing location.
         new RxPermissions(this)
                 .request(Manifest.permission.ACCESS_FINE_LOCATION)
                 .subscribe(granted -> {

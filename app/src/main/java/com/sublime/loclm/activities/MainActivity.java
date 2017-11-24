@@ -1,4 +1,4 @@
-package com.sublime.loclm;
+package com.sublime.loclm.activities;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -23,6 +23,8 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.sublime.loclm.R;
+import com.sublime.loclm.app.BaseActivity;
 import com.sublime.loclm.utils.Timber;
 
 import butterknife.BindView;
