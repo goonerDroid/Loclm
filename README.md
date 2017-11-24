@@ -1,5 +1,9 @@
 # Loclm
-Rings alarm when device is near to the location specified by the user.
+Alerts the user when location is nearby.
+
+
+##Follow
+[![Twitter Follow](https://img.shields.io/twitter/follow/espadrine.svg?style=social&label=Follow)](https://twitter.com/goonahDroid)
 
 ## License
 
