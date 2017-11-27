@@ -4,9 +4,13 @@ import android.annotation.SuppressLint;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 
 import com.google.android.gms.location.places.AutocompletePrediction;
 import com.google.android.gms.location.places.AutocompletePredictionBuffer;
@@ -14,6 +18,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.sublime.loclm.R;
 import com.sublime.loclm.app.BaseActivity;
+import com.sublime.loclm.model.AutocompleteInfo;
 import com.sublime.loclm.utils.RxTextView;
 
 import java.util.ArrayList;
@@ -32,10 +37,15 @@ public class PlacesActivity extends BaseActivity {
     Toolbar toolbar;
     @BindView(R.id.et_place)
     EditText etPlace;
+    @BindView(R.id.recycler_view)
+    RecyclerView placeList;
+    @BindView(R.id.progress)
+    ProgressBar typingProgress;
 
 
     private ReactiveLocationProvider reactiveLocationProvider;
     private CompositeDisposable compositeDisposable;
+    private PlaceAdapter placeAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,8 +60,11 @@ public class PlacesActivity extends BaseActivity {
 
         reactiveLocationProvider = new ReactiveLocationProvider(this);
 
-
-
+        placeAdapter = new PlaceAdapter();
+        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
+        placeList.setLayoutManager(mLayoutManager);
+        placeList.setItemAnimator(new DefaultItemAnimator());
+        placeList.setAdapter(placeAdapter);
     }
 
     public void initToolbar(){
@@ -88,11 +101,16 @@ public class PlacesActivity extends BaseActivity {
                         });
 
         compositeDisposable.add(suggestionsObservable.subscribe(buffer -> {
-            List<AutocompleteInfo> infos = new ArrayList<>();
+            List<AutocompleteInfo> autocompleteInfoList = new ArrayList<>();
             for (AutocompletePrediction prediction : buffer) {
-                infos.add(new AutocompleteInfo(prediction.getFullText(null).toString(), prediction.getPlaceId()));
+                AutocompleteInfo autocompleteInfo = new AutocompleteInfo();
+                autocompleteInfo.setPrimaryText(prediction.getPrimaryText(null).toString());
+                autocompleteInfo.setSecondaryText(prediction.getSecondaryText(null).toString());
+                autocompleteInfo.setId(prediction.getPlaceId());
+                autocompleteInfoList.add(autocompleteInfo);
             }
             buffer.release();
+            placeAdapter.setData(autocompleteInfoList);
         }));
     }
 
@@ -112,18 +130,4 @@ public class PlacesActivity extends BaseActivity {
         }
     }
 
-    private static class AutocompleteInfo {
-        private final String description;
-        private final String id;
-
-        private AutocompleteInfo(String description, String id) {
-            this.description = description;
-            this.id = id;
-        }
-
-        @Override
-        public String toString() {
-            return description;
-        }
-    }
 }
